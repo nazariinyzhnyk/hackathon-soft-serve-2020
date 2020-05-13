@@ -1,4 +1,5 @@
 import random
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -26,6 +27,26 @@ def label_df(data, n_month=3):
         else:
             labels += [0 for _ in range(len_emp - n_month)] + [1 for _ in range(n_month)]
     return labels
+
+
+def get_cv_folds(data, n_fold=5):
+    fold_idx = [[[], []] for _ in range(n_fold)]
+    for emp in data.EmployeeID.unique():
+        wdf = data[data['EmployeeID'] == emp]
+        emp_idx = list(wdf.index)
+        len_emp = len(emp_idx)
+
+        if len_emp <= n_fold:
+            warnings.warn(f'len_emp ({len_emp}) <= n_fold ({n_fold}). will use last observation as test for all folds.')
+            for i in range(n_fold):
+                fold_idx[i][0] += emp_idx[:-1]
+                fold_idx[i][1] += [emp_idx[-1]]
+        else:
+            for i in range(n_fold, 0, -1):
+                fold_idx[n_fold - i][0] += emp_idx[:-i]
+                fold_idx[n_fold - i][1] += [emp_idx[-i]]
+
+    return fold_idx
 
 
 def set_seed(random_state=42):

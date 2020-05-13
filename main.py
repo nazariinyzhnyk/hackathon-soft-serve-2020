@@ -39,29 +39,27 @@ cat_columns = ['DevCenterID', 'SBUID', 'PositionID', 'PositionLevel',
 
 X = df.drop(columns_to_drop, axis=1)
 
-encoder = BaseNEncoder(cols=cat_columns, base = 2)
+encoder = BaseNEncoder(cols=cat_columns, base=2)
 X = encoder.fit_transform(X)
 
 
 X["month"] = X["Date"].apply(get_month)
 X["year"] = X["Date"].apply(get_year)
 X = X.sort_values(["year", "month"])
-splits = [[[0,9],[10,11]],
-          [[0,11],[12,13]],
-          [[0,13],[14,15]],
-          [[0,15],[16,17]],
-          [[0,17],[18,19]]]
 
 fold = 0
 scores = []
 
-kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
-kf.get_n_splits(X)
+folds = get_cv_folds(data=df, n_fold=2)
+
+# kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
+# kf.get_n_splits(X)
 
 y = X.target
 X = X.drop(columns=["month", "year", "Date", 'target'])
 
-for train_index, test_index in kf.split(X):
+# for train_index, test_index in kf.split(X):
+for train_index, test_index in folds:
     fold += 1
     X_train, X_val = X.loc[X.index.intersection(train_index)], X.loc[X.index.intersection(test_index)]
     y_train, y_val = y.loc[y.index.intersection(train_index)], y.loc[y.index.intersection(test_index)]
