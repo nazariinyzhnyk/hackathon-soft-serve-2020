@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold
 from sklearn.metrics import fbeta_score
 from sklearn.preprocessing import MinMaxScaler
 from category_encoders.basen import BaseNEncoder
@@ -50,16 +51,16 @@ X = X.sort_values(["year", "month"])
 fold = 0
 scores = []
 
-folds = get_cv_folds(data=df, n_fold=2)
-
 # kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
-# kf.get_n_splits(X)
+folds = get_cv_folds(data=df, n_fold=2)
+# gkf = GroupKFold(n_splits=3)
 
 y = X.target
 X = X.drop(columns=["month", "year", "Date", 'target'])
 
 # for train_index, test_index in kf.split(X):
 for train_index, test_index in folds:
+# for train_index, test_index in gkf.split(X, y, groups=df.EmployeeID):
     fold += 1
     X_train, X_val = X.loc[X.index.intersection(train_index)], X.loc[X.index.intersection(test_index)]
     y_train, y_val = y.loc[y.index.intersection(train_index)], y.loc[y.index.intersection(test_index)]
