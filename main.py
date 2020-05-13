@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+from collections import Counter
 
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GroupKFold
@@ -48,22 +49,27 @@ X["month"] = X["Date"].apply(get_month)
 X["year"] = X["Date"].apply(get_year)
 X = X.sort_values(["year", "month"])
 
-fold = 0
-scores = []
-
-# kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
-folds = get_cv_folds(data=df, n_fold=2)
-# gkf = GroupKFold(n_splits=3)
+last_idx = get_idx_of_last_records(df)
 
 y = X.target
 X = X.drop(columns=["month", "year", "Date", 'target'])
 
+fold = 0
+scores = []
+
+kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
+# folds = get_cv_folds(data=df, n_fold=2)
+gkf = GroupKFold(n_splits=5)
+
 # for train_index, test_index in kf.split(X):
-for train_index, test_index in folds:
-# for train_index, test_index in gkf.split(X, y, groups=df.EmployeeID):
+# for train_index, test_index in folds:
+for train_index, test_index in gkf.split(X, y, groups=df.EmployeeID):
+    last_in_test = elements_in_list(test_index, last_idx)
     fold += 1
-    X_train, X_val = X.loc[X.index.intersection(train_index)], X.loc[X.index.intersection(test_index)]
-    y_train, y_val = y.loc[y.index.intersection(train_index)], y.loc[y.index.intersection(test_index)]
+    X_train, X_val = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_val = y.iloc[train_index], y.iloc[test_index]
+    print(f'train distrib: {Counter(y_train)}')
+    print(f'  val distrib: {Counter(y_val)}')
 
     if USE_SCALER:
         X_train = scaler.fit_transform(X_train)
@@ -75,8 +81,12 @@ for train_index, test_index in folds:
     model = model_fit(X_train, y_train, classifier=cls, **cls_params)
 
     y_pred = model_predict(X_val, model)
+
     score = fbeta_score(y_val, y_pred, beta=1.7)
     print('Validation Score: {}'.format(score))
+    score_cut = fbeta_score(y_val[last_in_test], y_pred[last_in_test], beta=1.7)
+    print('Validation Score Last Obs: {}'.format(score_cut))
+
     scores.append(score)
 
 print(f'MEAN OF SCOREs: {np.mean(scores)}')

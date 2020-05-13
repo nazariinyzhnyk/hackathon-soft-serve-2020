@@ -49,6 +49,15 @@ def get_cv_folds(data, n_fold=5):
     return fold_idx
 
 
+def get_idx_of_last_records(data):
+    data['idx'] = [i for i in range(len(data))]
+    return list(data.groupby('EmployeeID').last()['idx'])
+
+
+def elements_in_list(lst, to_check):
+    return [l in to_check for l in lst]
+
+
 def set_seed(random_state=42):
     random.seed(random_state)
     np.random.seed(random_state)
