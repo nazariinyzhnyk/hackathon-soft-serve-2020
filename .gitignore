@@ -1,5 +1,7 @@
 data/
 submission.csv
+df.csv
+df_small.csv
 
 .idea/
 # Byte-compiled / optimized / DLL files

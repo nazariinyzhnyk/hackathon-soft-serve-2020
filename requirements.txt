@@ -1,3 +1,4 @@
+tqdm
 imblearn
 numpy
 scikit-learn
