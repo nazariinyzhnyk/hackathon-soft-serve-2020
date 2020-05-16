@@ -7,8 +7,8 @@ from sklearn.metrics import fbeta_score
 from sklearn.preprocessing import MinMaxScaler
 from category_encoders.basen import BaseNEncoder
 from imblearn.ensemble import BalancedRandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.decomposition import PCA
 
 from utils import *
 from features import *
@@ -80,9 +80,9 @@ X = X.sort_values(["year", "month"])
 y = X.target
 X = X.drop(columns=["month", "year", "Date", 'target'])
 
-X = StandardScaler().fit_transform(X)
-pca = PCA(n_components=150)
-X = pca.fit_transform(X)
+# X = StandardScaler().fit_transform(X)
+# pca = PCA(n_components=150)
+# X = pca.fit_transform(X)
 
 fold = 0
 scores = []
@@ -117,13 +117,21 @@ model = model_fit(X, y, classifier=cls, **cls_params)
 X_test = df[df.target == 2]
 X_test.loc[:, 'Date'] = list(pd.to_datetime(X_test['Date']))
 
-X_test = X_test[X_test.Date == datetime(2019, 2, 1)]
+# X_test = X_test[X_test.Date == datetime(2019, 2, 1)]
 X_test = X_test[X_test.EmployeeID.isin(set(submission.EmployeeID))]
 emp_ids = X_test.EmployeeID
+
 X_test = X_test.drop(columns_to_drop, axis=1)
 X_test = encoder.transform(X_test)
 X_test = X_test.drop(columns=["Date", 'target'])
 preds = model.predict(X_test)
+pred_co = []
+for i in range(0, len(preds), 3):
+    if sum(preds[i:i+3]) >= 2:
+        pred_co.append(1)
+    else:
+        pred_co.append(0)
+
 print(sum(preds))
 result = pd.DataFrame({'EmployeeID': emp_ids, 'target': preds})
 result.to_csv('submission.csv', index=False)
