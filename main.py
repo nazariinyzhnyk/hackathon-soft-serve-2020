@@ -31,4 +31,5 @@ unique, counts = np.unique(lbls, return_counts=True)
 print(dict(zip(unique, counts)))
 
 df['target'] = lbls
-print(df.head(60))
+
+
