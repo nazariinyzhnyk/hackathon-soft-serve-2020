@@ -95,7 +95,13 @@ emp_ids = X_test.EmployeeID
 X_test = X_test.drop(columns_to_drop, axis=1)
 X_test = encoder.transform(X_test)
 X_test = X_test.drop(columns=["Date", 'target'])
-preds = model.predict(X_test)
+preds = model.predict_proba(X_test)
 
-result = pd.DataFrame({'EmployeeID': emp_ids, 'target': preds})
+p_sum = [1 if p[1] > 0.5 else 0 for p in preds]
+print(f'1 before thr: {sum(p_sum)}')
+
+preds_thr = [1 if p[1] > 0.475 else 0 for p in preds]
+print(f'1 after thr: {sum(preds_thr)}')
+
+result = pd.DataFrame({'EmployeeID': emp_ids, 'target': preds_thr})
 result.to_csv('submission.csv', index=False)
