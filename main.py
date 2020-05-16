@@ -7,6 +7,8 @@ from sklearn.metrics import fbeta_score
 from sklearn.preprocessing import MinMaxScaler
 from category_encoders.basen import BaseNEncoder
 from imblearn.ensemble import BalancedRandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 from utils import *
 from features import *
@@ -15,7 +17,7 @@ RANDOM_SEED = 42
 set_seed(RANDOM_SEED)
 
 USE_SCALER = True
-USE_CACHED = False
+USE_CACHED = True
 scaler = MinMaxScaler()
 
 cls = BalancedRandomForestClassifier
@@ -63,25 +65,30 @@ else:
             '_time_since_last_change_vals'] = get_all_feat_values(df, cat_feature)
     df.to_csv('df.csv', index=False)
 
+cat_columns += [cat_feature + '_lag' for cat_feature in cat_features_num]
+
 df_x = df[df.target != 2]
 X = df_x.drop(columns_to_drop, axis=1)
 
 encoder = BaseNEncoder(cols=cat_columns, base=2)
 X = encoder.fit_transform(X)
 
-
 X["month"] = X["Date"].apply(get_month)
 X["year"] = X["Date"].apply(get_year)
 X = X.sort_values(["year", "month"])
+
+y = X.target
+X = X.drop(columns=["month", "year", "Date", 'target'])
+
+X = StandardScaler().fit_transform(X)
+pca = PCA(n_components=150)
+X = pca.fit_transform(X)
 
 fold = 0
 scores = []
 
 kf = KFold(n_splits=5, random_state=RANDOM_SEED, shuffle=True)
 kf.get_n_splits(X)
-
-y = X.target
-X = X.drop(columns=["month", "year", "Date", 'target'])
 
 for train_index, test_index in kf.split(X):
     fold += 1
