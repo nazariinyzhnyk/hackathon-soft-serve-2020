@@ -13,6 +13,7 @@ def get_prev_values_stats(df, column):
         lag_values_emps += list(shift(column_values, 1, cval=0))
     return diff_values_emps, lag_values_emps
 
+
 def get_num_feat_values(df, column):
     employees = df.EmployeeID.unique()
     maxs = []
