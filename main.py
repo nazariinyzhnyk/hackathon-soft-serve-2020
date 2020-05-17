@@ -126,6 +126,7 @@ def label_df(data, n_month=3):
 
 
 lbls = label_df(df)
+print(sum(lbls))
 print(len(df))
 print(len(lbls))
 df['target'] = lbls
@@ -147,163 +148,163 @@ num_features = ['Utilization', 'HourVacation', 'BonusOneTime', 'APM',
 cat_features_num = ['DevCenterID', 'SBUID', 'PositionID', 'PositionLevel', 'IsTrainee', 'LanguageLevelID',
                     'IsInternalProject', 'OnSite', 'CompetenceGroupID', 'FunctionalOfficeID', 'PaymentTypeId']
 
-if USE_CACHED:
-    df = pd.read_csv('df.csv')
-else:
-    for cat_feature in tqdm(cat_features_num):
-        _ , df[cat_feature + '_lag'] = get_prev_values_stats(df, cat_feature)
-        df[cat_feature + '_nuniques'], df[cat_feature + '_nunique_fracs'], df[
-            '_time_since_last_change_vals'] = get_all_feat_values(df, cat_feature)
-    df.to_csv('df.csv', index=False)
-
-df['HourLockedReserve'] = (df['HourLockedReserve']>0).astype(int)
-df['HourMobileReserve'] = (df['HourMobileReserve']>0).astype(int)
-# df['Years_in_company'] = ((df.Date - pd.to_datetime(df['HiringDate'])).values/3.154e+16).astype(int)
-
-# WageGross
-df.loc[list((df[df.WageGross<0]).index), 'WageGross'] = 0
-df.loc[list((df[df.WageGross>10]).index), 'WageGross'] = 10
-
-# BonusOneTime
-df.loc[list((df[df.WageGross<0]).index), 'BonusOneTime'] = 0
-df.loc[list((df[df.WageGross>3000]).index), 'BonusOneTime'] = 3000
-
-# APM
-df.loc[list((df[df.APM<0]).index), 'APM'] = 0
-df.loc[list((df[df.APM>100]).index), 'APM'] = 100
-
-# binning LanguageLevelID
-cut_labels_4 = ['low', 'low/medium', 'medium/high', 'high']
-cut_bins = [0, 6, 12, 18, 27]
-df['LanguageLevelID'] = pd.cut(df['LanguageLevelID'], bins=cut_bins, labels=cut_labels_4)
-df['LanguageLevelID_lag'] = pd.cut(df['LanguageLevelID_lag'], bins=cut_bins, labels=cut_labels_4)
-
-# binning PositionLevel
-cut_labels_4 = ['low', 'low/medium', 'medium/high', 'high']
-cut_bins = [0, 2, 5, 8, 11]
-df['PositionLevel'] = pd.cut(df['PositionLevel'], bins=cut_bins, labels=cut_labels_4)
-df['PositionLevel_lag'] = pd.cut(df['PositionLevel_lag'], bins=cut_bins, labels=cut_labels_4)
-
-# process DevCenterID
-tmp = df.DevCenterID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>1000:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.DevCenterID]
-df.DevCenterID = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.DevCenterID_lag]
-df.DevCenterID_lag = new_cust_id
-
-# process ProjectID
-tmp = df.ProjectID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>70:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.ProjectID]
-df.ProjectID = new_cust_id
-
-# process CustomerID
-tmp = df.CustomerID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>50:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.CustomerID]
-df.CustomerID = new_cust_id
-
-# process PositionID
-tmp = df.PositionID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>100:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.PositionID]
-df.PositionID = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.PositionID_lag]
-df.PositionID_lag = new_cust_id
-
-# process SBUID
-tmp = df.SBUID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>100:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.SBUID]
-df.SBUID = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.SBUID_lag]
-df.SBUID_lag = new_cust_id
-
-# process PaymentTypeId
-tmp = df.PaymentTypeId.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>1000:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.PaymentTypeId]
-df.PaymentTypeId = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.PaymentTypeId_lag]
-df.PaymentTypeId_lag = new_cust_id
-
-# process FunctionalOfficeID
-tmp = df.FunctionalOfficeID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>10000:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.FunctionalOfficeID]
-df.FunctionalOfficeID = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.FunctionalOfficeID_lag]
-df.FunctionalOfficeID_lag = new_cust_id
-
-# process CompetenceGroupID
-tmp = df.CompetenceGroupID.value_counts()
-new_client_id = {}
-for row in tmp.iteritems():
-    if row[1]>500:
-        new_client_id[row[0]] = row[0]
-    else:
-        new_client_id[row[0]] = -999
-
-new_cust_id = [new_client_id.get(i) for i in df.CompetenceGroupID]
-df.CompetenceGroupID = new_cust_id
-new_cust_id = [new_client_id.get(i) for i in df.CompetenceGroupID_lag]
-df.CompetenceGroupID_lag = new_cust_id
-
-### Nazarii block
-if USE_CACHED:
-    df = pd.read_csv('df.csv')
-else:
-    for num_feature in tqdm(num_features):
-        df[num_feature + '_diff'], df[num_feature + '_lag'] = get_prev_values_stats(df, num_feature)
-        df[num_feature + '_nuniques'], df[num_feature + '_nunique_fracs'], df[
-            num_feature + '_time_since_last_change_vals'] = get_all_feat_values(df, num_feature)
-        df[num_feature + '_max'], df[num_feature + '_min'], df[num_feature + '_std'], df[num_feature + '_mean'], \
-            df[num_feature + '_lmmin'], df[num_feature + '_lmmax'], \
-            df[num_feature + '_lmmean'] = get_num_feat_values(df, num_feature)
-    df.to_csv('df.csv', index=False)
+# if USE_CACHED:
+#     df = pd.read_csv('df.csv')
+# else:
+#     for cat_feature in tqdm(cat_features_num):
+#         _ , df[cat_feature + '_lag'] = get_prev_values_stats(df, cat_feature)
+#         df[cat_feature + '_nuniques'], df[cat_feature + '_nunique_fracs'], df[
+#             '_time_since_last_change_vals'] = get_all_feat_values(df, cat_feature)
+#     df.to_csv('df.csv', index=False)
+#
+# df['HourLockedReserve'] = (df['HourLockedReserve']>0).astype(int)
+# df['HourMobileReserve'] = (df['HourMobileReserve']>0).astype(int)
+# # df['Years_in_company'] = ((df.Date - pd.to_datetime(df['HiringDate'])).values/3.154e+16).astype(int)
+#
+# # WageGross
+# df.loc[list((df[df.WageGross<0]).index), 'WageGross'] = 0
+# df.loc[list((df[df.WageGross>10]).index), 'WageGross'] = 10
+#
+# # BonusOneTime
+# df.loc[list((df[df.WageGross<0]).index), 'BonusOneTime'] = 0
+# df.loc[list((df[df.WageGross>3000]).index), 'BonusOneTime'] = 3000
+#
+# # APM
+# df.loc[list((df[df.APM<0]).index), 'APM'] = 0
+# df.loc[list((df[df.APM>100]).index), 'APM'] = 100
+#
+# # binning LanguageLevelID
+# cut_labels_4 = ['low', 'low/medium', 'medium/high', 'high']
+# cut_bins = [0, 6, 12, 18, 27]
+# df['LanguageLevelID'] = pd.cut(df['LanguageLevelID'], bins=cut_bins, labels=cut_labels_4)
+# df['LanguageLevelID_lag'] = pd.cut(df['LanguageLevelID_lag'], bins=cut_bins, labels=cut_labels_4)
+#
+# # binning PositionLevel
+# cut_labels_4 = ['low', 'low/medium', 'medium/high', 'high']
+# cut_bins = [0, 2, 5, 8, 11]
+# df['PositionLevel'] = pd.cut(df['PositionLevel'], bins=cut_bins, labels=cut_labels_4)
+# df['PositionLevel_lag'] = pd.cut(df['PositionLevel_lag'], bins=cut_bins, labels=cut_labels_4)
+#
+# # process DevCenterID
+# tmp = df.DevCenterID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>1000:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.DevCenterID]
+# df.DevCenterID = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.DevCenterID_lag]
+# df.DevCenterID_lag = new_cust_id
+#
+# # process ProjectID
+# tmp = df.ProjectID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>70:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.ProjectID]
+# df.ProjectID = new_cust_id
+#
+# # process CustomerID
+# tmp = df.CustomerID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>50:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.CustomerID]
+# df.CustomerID = new_cust_id
+#
+# # process PositionID
+# tmp = df.PositionID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>100:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.PositionID]
+# df.PositionID = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.PositionID_lag]
+# df.PositionID_lag = new_cust_id
+#
+# # process SBUID
+# tmp = df.SBUID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>100:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.SBUID]
+# df.SBUID = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.SBUID_lag]
+# df.SBUID_lag = new_cust_id
+#
+# # process PaymentTypeId
+# tmp = df.PaymentTypeId.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>1000:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.PaymentTypeId]
+# df.PaymentTypeId = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.PaymentTypeId_lag]
+# df.PaymentTypeId_lag = new_cust_id
+#
+# # process FunctionalOfficeID
+# tmp = df.FunctionalOfficeID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>10000:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.FunctionalOfficeID]
+# df.FunctionalOfficeID = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.FunctionalOfficeID_lag]
+# df.FunctionalOfficeID_lag = new_cust_id
+#
+# # process CompetenceGroupID
+# tmp = df.CompetenceGroupID.value_counts()
+# new_client_id = {}
+# for row in tmp.iteritems():
+#     if row[1]>500:
+#         new_client_id[row[0]] = row[0]
+#     else:
+#         new_client_id[row[0]] = -999
+#
+# new_cust_id = [new_client_id.get(i) for i in df.CompetenceGroupID]
+# df.CompetenceGroupID = new_cust_id
+# new_cust_id = [new_client_id.get(i) for i in df.CompetenceGroupID_lag]
+# df.CompetenceGroupID_lag = new_cust_id
+#
+# ### Nazarii block
+# if USE_CACHED:
+#     df = pd.read_csv('df.csv')
+# else:
+#     for num_feature in tqdm(num_features):
+#         df[num_feature + '_diff'], df[num_feature + '_lag'] = get_prev_values_stats(df, num_feature)
+#         df[num_feature + '_nuniques'], df[num_feature + '_nunique_fracs'], df[
+#             num_feature + '_time_since_last_change_vals'] = get_all_feat_values(df, num_feature)
+#         df[num_feature + '_max'], df[num_feature + '_min'], df[num_feature + '_std'], df[num_feature + '_mean'], \
+#             df[num_feature + '_lmmin'], df[num_feature + '_lmmax'], \
+#             df[num_feature + '_lmmean'] = get_num_feat_values(df, num_feature)
+#     df.to_csv('df.csv', index=False)
 
 df = pd.read_csv('df.csv')
 print(f'nrows before deletion: {len(df)}')
@@ -344,6 +345,7 @@ X = encoder_3_huli.fit_transform(X)
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier
+from imblearn.ensemble import RUSBoostClassifier
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -351,7 +353,8 @@ pca = PCA(n_components=100)
 
 
 def model_fit(X_train, y_train):
-    clf2 = BalancedRandomForestClassifier(n_estimators=200, n_jobs = 8)
+    clf2 = BalancedRandomForestClassifier(n_estimators=5000, n_jobs=8, max_depth=16)
+    # clf2 = RUSBoostClassifier(n_estimators=200, random_state=42)
     clf2 = clf2.fit(X_train, y_train)
     return clf2
 
@@ -422,7 +425,7 @@ model = model_fit(X, y)
 
 from datetime import datetime
 
-emp_ids = df[(df['target'] == 2)&(df.EmployeeID.isin(set(submission.EmployeeID)))]['EmployeeID']
+emp_ids = df[(df['target'] == 2) & (df.EmployeeID.isin(set(submission.EmployeeID)))]['EmployeeID']
 
 # X_test = X_test.drop(columns=['EmployeeID',"Date", 'target'])
 preds = model.predict(X_test)
@@ -436,6 +439,6 @@ for i in range(0, len(preds), 3):
 print(sum(preds))
 result = pd.DataFrame({'EmployeeID': emp_ids.drop_duplicates(), 'target': pred_co})
 
-result.to_csv('submission_NAZARII_FEATURES_retried.csv', index=False)
+result.to_csv('submission_finals.csv', index=False)
 
 print(sum(pred_co))
