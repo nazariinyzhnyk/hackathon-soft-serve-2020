@@ -353,7 +353,7 @@ pca = PCA(n_components=100)
 
 
 def model_fit(X_train, y_train):
-    clf2 = BalancedRandomForestClassifier(n_estimators=5000, n_jobs=8, max_depth=16)
+    clf2 = BalancedRandomForestClassifier(n_estimators=10000, n_jobs=8, max_depth=16)
     # clf2 = RUSBoostClassifier(n_estimators=200, random_state=42)
     clf2 = clf2.fit(X_train, y_train)
     return clf2
